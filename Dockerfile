@@ -44,7 +44,18 @@ RUN mkdir -p build && cd build && \
 
 # Create simple entrypoint script
 RUN echo '#!/bin/bash\n\
-    /app/build/bin/VoltageMonitor "$@"\n' > /app/entrypoint.sh && \
+    find /app -name VoltageMonitor -type f -executable > /tmp/exe_path.txt\n\
+    if [ -s /tmp/exe_path.txt ]; then\n\
+    EXE_PATH=$(cat /tmp/exe_path.txt)\n\
+    $EXE_PATH "$@"\n\
+    else\n\
+    echo "Executável não encontrado, listando arquivos em /app/build:"\n\
+    find /app/build -type f | grep -v CMake\n\
+    echo "Tentando encontrar qualquer executável:"\n\
+    find /app -type f -executable\n\
+    echo "Erro: Executável VoltageMonitor não encontrado"\n\
+    exit 1\n\
+    fi\n' > /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 # Default command
